@@ -1,5 +1,5 @@
 
-%macro sample(ds, obs=12, keep=_ALL_, where=, label=0, seed=, delete=1);
+%macro sample(ds, obs=12, keep=_ALL_, where=, formats=, label=0, seed=, delete=1);
 
 	/* check if supplied dataset exists */
 
@@ -45,6 +45,8 @@
 			   ;
 			   obs="#";			   	
 
+		/* hardcode speciific formats for input datasets (for %sample_all macro) */
+
 		%if %upcase(&name.) = HOUSEHOLDS %then %do;
 			format 
 				dob customer_startdate contact_date date9.;
@@ -58,6 +60,12 @@
 			format 
 				invested_date date9.
 				initial_value current_value nlmnlgbp.0;
+		%end;
+
+		/* format parameter option if specified */
+
+		%if %length(&formats.) %then %do;
+			format &formats.;
 		%end;
 
 	run;
