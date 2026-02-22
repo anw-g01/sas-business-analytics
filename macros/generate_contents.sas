@@ -21,6 +21,7 @@
 	/* generate a single PDF report */
 
 	ods pdf file="&root.\reports\raw_metadata.pdf";
+			style=journal1a;
 	ods noproctitle;    						/* don't display default titles */
 
 		%if &num_ds. > 0 %then %do;

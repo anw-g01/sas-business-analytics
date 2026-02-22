@@ -7,7 +7,8 @@
 
 	/* create a PDF report of data set observation prints */
 
-	ods pdf file="&root.\reports\&filename..pdf";
+	ods pdf file="&root.\reports\&filename..pdf"
+			style=journal1a;
 
 		%do i = 1 %to &n.;
 
