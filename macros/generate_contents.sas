@@ -12,7 +12,7 @@
 * 																		*
 *************************************************************************;
 
-%macro generate_contents(lib=work);
+%macro generate_contents(lib=work, filename=raw_metadata);
 
 	/* fetch and store all dataset names (+ count) from library as global macro variables */
 
@@ -20,7 +20,7 @@
 
 	/* generate a single PDF report */
 
-	ods pdf file="&root.\reports\raw_metadata.pdf";
+	ods pdf file="&root.\reports\&filename..pdf"
 			style=journal1a;
 	ods noproctitle;    						/* don't display default titles */
 

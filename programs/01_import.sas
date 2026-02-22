@@ -128,14 +128,14 @@ data raw.destinations;
 
 	/* set lengths explicitly for primary/foreign keys */
 	length 
-		code      		$2;
+		code      			$2;
 
 	input
-		code 			: $2.
-		description 	: $30.;
+		code 				: $2.
+		description 		: $30.;
 
 	label 
-		code 	= "Destination Code"
+		code 				= "Destination Code"
 		description 		= "Description";
 		
 run; 
