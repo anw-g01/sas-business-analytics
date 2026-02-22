@@ -9,15 +9,15 @@ options
 
 /* RUN ALL PROGRAMS SEQUENTIALLY */
 
-%include "&root.\SAS\programs\01_import.sas";
+%include "&root.\programs\01_import.sas";
 
-%include "&root.\SAS\programs\02_prepare_households.sas";
+%include "&root.\programs\02_clean.sas";
 
-%include "&root.\SAS\programs\03_prepare_bookings.sas";
+%include "&root.\programs\03.1_prepare_bookings.sas";
 
-%include "&root.\SAS\programs\04_prepare_shareholders.sas";
+%include "&root.\programs\03.2_prepare_shareholders.sas";
 
-%include "&root.\SAS\programs\05_analytics_and_reporting.sas";
+%include "&root.\programs\04_analytics_and_reporting.sas";
 
 
 /* RESET GLOBAL OPTIONS TO DEFAULT */
