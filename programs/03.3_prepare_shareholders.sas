@@ -2,18 +2,18 @@
 proc sql;
 
 	/* create a SHAREHOLDERS data set */
-	create table marts.shareholders as 
+	create table detail.shareholders as 
 		select
 			*
 		from
 			raw.loyalty as l
 		/* keep only customers that are shareholders  */
 		left join 					/* INNER JOIN also valid (LEFT JOIN assumes all shareholders are also customers)*/			
-			raw.households as h
+			staging.households as h
 			on l.loyalty_id = h.loyalty_id;
 
 	/* create a HOUSEHOLD_ONLY data set */
-	create table marts.household_only as 
+	create table detail.household_only as 
 		select 
 			h.*		/* don't include columns from BOOKINGS data set (all empty) */
  		from 
