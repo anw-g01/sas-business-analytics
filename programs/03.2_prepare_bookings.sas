@@ -1,13 +1,11 @@
 
-/* -------------------------------------------------------------- */
-/* ---------- Preparing the Booking Data for Analytics ---------- */
-/* -------------------------------------------------------------- */
-
-%let destlib = staging; 	/* chosen library to store key data sets */
+/* ---------------------------------------------------------------------------------- */
+/* ---------- TASK: create BOOKINGS_DEPOSIT and BOOKINGS_BALANCE data sets ---------- */
+/* ---------------------------------------------------------------------------------- */
 
 /* create a format from the DESTINATIONS data set */
 
-data &destlib..destfmt;
+data destfmt;
 	set raw.destinations(
 		rename=(
 			code = start
@@ -18,13 +16,12 @@ data &destlib..destfmt;
 	type = "C";
 run;
 
-proc format cntlin=&destlib..destfmt;
+proc format cntlin=destfmt;		/* create format from data set */
 run;
 
 /* create BOOKINGS_DEPOSIT and BOOKINGS_BALANCE data sets */
 
-data &destlib..bookings_deposit &destlib..bookings_balance;
-
+data bookings_deposit bookings_balance;
 	set raw.bookings;
 
 	/* apply destination format mapping */
@@ -37,45 +34,56 @@ data &destlib..bookings_deposit &destlib..bookings_balance;
 	balance = holiday_cost - deposit;
 
 	if day_diff > 42 then 			
-		output &destlib..bookings_deposit;
+		output bookings_deposit;
 	else 
-		output &destlib..bookings_balance;    /* booking made within 6-weeks */
+		output bookings_balance;    /* booking made within 6-weeks */
 
-	drop day_diff;
+	drop day_diff destination_code;
+	label 
+		destination = "Destination"
+		deposit 	= "Deposit"
+		balance 	= "Balance";
 run;
 
-proc sort data=&destlib..bookings_deposit 
-		  out=booking_deposit_sample;
+proc sort data=bookings_deposit 
+		  out=detail.bookings_deposit;
 	by booked_date;
 run;
 
-proc sort data=&destlib..bookings_balance 
-		  out=bookings_balance_sample;
+proc sort data=bookings_balance 
+		  out=detail.bookings_balance;
 	by booked_date;
 run;
 
-/* inspect a sample of BOOKINGS_DEPOSIT */
+/* inspect samples of both data sets */
 
-proc print data=&destlib..bookings_balance(obs=10)
-		   obs="#";
-	var 
-		booked_date departure_date
-		holiday_cost deposit balance;
-	format 
-		booked_date departure_date dtfmt.
-		holiday_cost deposit balance nlmnlgbp.2;
-run;
+%let keep_cols = destination booked_date departure_date holiday_cost deposit balance;
+%let col_formats = booked_date departure_date dtfmt. holiday_cost deposit balance nlmnlgbp.2;
 
-/* generate PDF reports */
-
-options papersize=A3 orientation=landscape;
-
-%generate_prints(
-	dslist=&destlib..bookings_deposit &destlib..bookings_balance,
-	obs=30,		
-	label=0, 								/* preference: show variable names rather than labels */
-	formats=booked_date departure_date dtfmt. holiday_cost deposit balance nlmnlgbp.2,
-	filename=bookings_report
+%sample(
+	ds = detail.bookings_deposit, 
+	keep = &keep_cols.,
+	formats = &col_formats.,
+	label=0
 )
 
+%sample(
+	ds = detail.bookings_balance,	    /* booking made within 6-weeks */
+	keep = &keep_cols.,
+	formats = &col_formats.,
+	label=1
+)
+
+/* -------------------------------------------------------- */
+/* PDF REPORT: first 30 observations ordered by booked_date */
+/* -------------------------------------------------------- */
+
+options papersize=A3 orientation=landscape;
+	%generate_prints(
+		dslist=detail.bookings_deposit detail.bookings_balance,
+		obs=30,		
+		label=0, 	/* preference: don't show labels */
+		formats=booked_date departure_date dtfmt. holiday_cost deposit balance nlmnlgbp.2,
+		filename=bookings_report
+	)
 options papersize=A4 orientation=portrait;
