@@ -1,5 +1,4 @@
 
-
 /* --------------------------------------------------------------------------- */
 /* ---------- TASK: construct a customer greeting message variable  ---------- */
 /* --------------------------------------------------------------------------- */
@@ -210,7 +209,7 @@ run;
 %sample_all(lib=staging)	
 
 /* ------------------------------------------------------- */
-/* PDF REPORT first 30 observations ordered by customer ID */
+/* PDF REPORT: first 30 observations ordered by customer ID */
 /* ------------------------------------------------------- */
 
 options papersize=A3 orientation=landscape;
