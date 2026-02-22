@@ -1,5 +1,5 @@
 
-proc format library=shared;
+proc format library=formats;
 	
 	picture fulldtfmt (default=22)
         other = "%a, %d %3B %Y %0H:%0M" (datatype=datetime);	/* for date codes see docs: https://documentation.sas.com/doc/en/proc/1.0/p0n990vq8gxca6n1vnsracr6jp2c.htm */
@@ -12,7 +12,6 @@ proc format library=shared;
 		"F" = "Female"
 		other = "";
 
-	/* Interest Coding - Appendix A (SECTION B: TASK 4) */
 	value $interestfmt
 		"A", "K", "L" 	= "Mountaineering"
 		"B" 			= "Water Sports"
@@ -32,13 +31,11 @@ proc format library=shared;
         
 run;
 
-
 /* OPTIONAL: View all formats as a data set */
 
 title1 "%nrstr(%sysfunc(datetime(), fulldtfmt.))";		/* test datetime picture format within titles */
 title2 "%sysfunc(datetime(), fulldtfmt.)";
 footnote1 height=10pt "Created on: %sysfunc(datetime(), fulldtfmt.)";
-
 	proc format library=shared
 				cntlout=fmt_list(keep = fmtname -- length);
 	run;
@@ -46,7 +43,6 @@ footnote1 height=10pt "Created on: %sysfunc(datetime(), fulldtfmt.)";
 	proc print data=fmt_list 
 			   noobs;
 	run;
-
 title1;
 footnote1;
 
