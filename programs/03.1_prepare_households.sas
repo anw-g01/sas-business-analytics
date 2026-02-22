@@ -34,6 +34,7 @@ data households_detail;
 		greeting = catx(" ", "Dear", title, substr(forename, 1, 1), family_name);
 run;
 
+
 /* ---------------------------------------------------------- */
 /* ---------- TASK: identify primary householders  ---------- */
 /* ---------------------------------------------------------- */
@@ -64,8 +65,105 @@ run;
 /* ---------- TASK 4: derive a variable for each holiday interest ---------- */
 /* ------------------------------------------------------------------------- */
 
-/*%include "&root\programs\sectionB_task4.sas";*/
+/* create a holiday interests coding data set */
 
+data interest_coding;
+    infile datalines dsd dlm=",";
+    input 
+        codes : $3. 
+        description : $20.;
+    datalines;
+AKL,Mountaineering 
+B,Water Sports 
+CX,Sightseeing 
+D,Cycling 
+E,Climbing 
+FW,Dancing 
+HG,Hiking 
+J,Skiing 
+M,Snowboarding 
+N,White Water Rafting 
+PQR,Scuba Diving 
+S,Yoga 
+TU,Mountain Biking 
+VYZ,Trail Walking
+;
+run;
+
+proc sql noprint;
+
+    /* store interest codes as macro variables */
+    select codes 
+    into: codes1-
+    from interest_coding;
+
+    /* store interest descriptions as macro variables */
+    select tranwrd(lower(strip(description)), " ", "_")
+    into: desc1-
+    from interest_coding;
+
+    /* store count of interests as a macro variable */
+    select count(*)
+    into: num_interests
+    from interest_coding;
+
+	/* OPTIONAL: store non-underscored descriptions for labelling */
+    select description
+    into: interest_label1-
+    from interest_coding;
+
+	/* OPTIONAL: create a space separated macro variable list of all interests */
+	select tranwrd(lower(strip(description)), " ", "_")
+	into: all_interests separated by " "
+	from interest_coding;
+
+quit;
+
+/* for each customer interest, create a boolean interest variable */
+
+%macro assign_interests(ds_in=, ds_out=);
+
+	data &ds_out.;				
+		set &ds_in.;			
+
+		/* initialise each description as a variable to 0 */
+		%do i = 1 %to &num_interests.;
+			&&desc&i = 0;
+			label &&desc&i = "&&interest_label&i"; 		/* optional label */
+		%end;
+
+		/* loop through each interest letter code */
+		do i = 1 to countw(interests, " ");				/* space separated interest codes */
+
+			letter = scan(interests, i);				/* get the ith letter code */
+
+			/* loop through each interest description */
+			%do j = 1 %to &num_interests.;
+
+				/* if letter is found within letters code, then toggle interest = 1 */
+				if index("&&codes&j", strip(letter)) then   /* strip turns letter variable into a character for comparison */
+					&&desc&j = 1;	
+				;
+			%end;
+		end;
+		
+		drop i letter;
+	run;
+
+%mend;
+
+%assign_interests(
+    ds_in=households_detail,
+    ds_out=detail.households_detail     /* write to DETAIL library */
+)
+
+/* inspect newly populated interest variables (randomly sampled results) */
+
+%sample(
+	ds=detail.households_detail, 
+	keep=interests &all_interests.,
+	obs=25,
+)
 
 /* -------------------------------------------------------------------------- */
 /* ---------- TASK: separate customers by preferred contact method ---------- */
@@ -111,14 +209,19 @@ run;
 
 %sample_all(lib=staging)	
 
-/* generate reports of first 30 observations ordered by customer ID */
+/* ------------------------------------------------------- */
+/* PDF REPORT first 30 observations ordered by customer ID */
+/* ------------------------------------------------------- */
 
-%generate_prints(
-	dslist=staging.contact_post staging.contact_email,
-	obs=30,		
-	label=0, 	/* preference: show variable names, not labels */
-	filename=contact_preferences_report
-)
+options papersize=A3 orientation=landscape;
+	%generate_prints(
+		dslist=staging.contact_post staging.contact_email,
+		obs=30,		
+		label=1, 	/* preference: show variable names, not labels */
+		filename=contact_preferences_report
+	)
+options papersize=A4 orientation=portrait;
+
 
 /* ------------------------------------------------ */
 /* ---------- OPTIONAL VALIDATION CHECKS ---------- */
