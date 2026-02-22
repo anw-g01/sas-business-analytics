@@ -7,7 +7,7 @@
 
 	/* create a PDF report of data set observation prints */
 
-	ods pdf file="&root.\SAS\reports\&filename..pdf";
+	ods pdf file="&root.\reports\&filename..pdf";
 
 		%do i = 1 %to &n.;
 

@@ -20,7 +20,7 @@
 
 	/* generate a single PDF report */
 
-	ods pdf file="&root.\SAS\reports\raw_metadata.pdf";
+	ods pdf file="&root.\reports\raw_metadata.pdf";
 	ods noproctitle;    						/* don't display default titles */
 
 		%if &num_ds. > 0 %then %do;
