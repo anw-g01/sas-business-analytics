@@ -27,11 +27,11 @@
 	/* generate a single PDF report */
 	ods pdf file="&root.\reports\&filename..pdf"
 			style=journal1a;
-		ods noproctitle;	/* don't display default PROC CONTENTS titles */
-			
+		ods noproctitle;					/* don't display default PROC CONTENTS titles */
 			%if &num_ds. > 0 %then %do;
 				/* run PROC CONTENTS for each dataset */
 				%do i = 1 %to &num_ds.;
+					ods exclude EngineHost; 			/* exclude EngineHost table */
 					title1 "Contents of %upcase(&&ds&i)";
 					footnote1 height=10pt "Created on: %sysfunc(datetime(), fulldtfmt.)";
 						proc contents data=&&ds&i
@@ -39,11 +39,10 @@
 						run;
 					title1;
 					footnote1;
-
+					ods select EngineHost;
 				%end;
 			%end;
 			%else %put WARNING: zero data sets found in library "&lib.";
-			
 		ods proctitle;
 	ods pdf close;
 

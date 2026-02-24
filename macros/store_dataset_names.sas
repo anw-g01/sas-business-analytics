@@ -1,7 +1,7 @@
 
 *************************************************************************************************************
 *                                                                             								*
-*	Name:					store_dataset_names.sas																*
+*	Name:					store_dataset_names.sas															*
 *                                                                             								*
 *	Description:			Macro to retrieve all dataset names from a specified library and store 			*
 *							them as global macro variables for iterative processing by other macros.		*
