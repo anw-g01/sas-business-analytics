@@ -10,7 +10,7 @@
 *                                                                             					*
 *	Creation Date:			Fri, 20 Feb 2026 													*
 *                                                                             					*
-*	Last Updated:			Mon, 23 Feb 2026													*
+*	Last Updated:			Mon, 24 Feb 2026													*
 * 																								*
 *	Created By:				Anwarat Gurung														*
 *							Katalyze Data														*		
@@ -91,14 +91,8 @@ options papersize=A4 orientation=portrait;
 
 /* optional: export as a CSV file for python visualisations (see python folder) */
 
-proc export data=marts.interest_fcounts
-			outfile="&root.\python\data\holiday_interest_counts.csv"
-			dbms=csv 
-			replace;
-run;
-
 proc export data=marts.interest_fcounts_by_cg
-			outfile="&root.\Python\data\holiday_interest_counts_by_country_gender.csv"
+			outfile="&root.\Python\data\holiday_interests_by_country_gender.csv"
 			dbms=csv 
 			replace;
 run;
@@ -138,6 +132,8 @@ proc sort data=fcounts_by_gender;
 		gender 
 		descending freq_count;
 run;
+
+/* filter for the top N interests by gender */
 
 %let topn = 5; 				/* select the top N from each gender */
 
