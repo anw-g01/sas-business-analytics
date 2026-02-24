@@ -1,13 +1,32 @@
 
-/* ------------------------------------------------------------------------------- */
+*************************************************************************************************
+*                                                                             					*
+*	Name:					04_analytics_and_reporting.sas										*
+*                                                                             					*
+*	Description:			Calculate frequency counts for each holiday interest, reshape 		*
+*							results for reporting, and produce PDF and CSV outputs including 	*
+*							breakdowns by gender and country. Identify and report the top 		*
+*							five interests per gender and generate an Excel summary file.		*
+*                                                                             					*
+*	Creation Date:			Fri, 20 Feb 2026 													*
+*                                                                             					*
+*	Last Updated:			Mon, 23 Feb 2026													*
+* 																								*
+*	Created By:				Anwarat Gurung														*
+*							Katalyze Data														*		
+* 																								*
+************************************************************************************************;
+
+/* -------------------------------------------------------------------------------- */
 /* ---------- TASK: calculate frequency counts for each holiday interest ---------- */
-/* ------------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------------- */
 
 /* sum each holiday interest variable in HOUSEHOLDS_DETAIL */
 
 proc means data=detail.households_detail(keep = &all_interests.)
 		   sum maxdec=0 noprint;
-	var &all_interests.;					/* sum all holiday interest variables */
+	var &all_interests.;	/* sum all holiday interest variables */
+	
 	output out=interest_fcounts(drop = _TYPE_ _FREQ_)
 		sum=;
 run;
@@ -18,12 +37,11 @@ proc transpose data=interest_fcounts
 			   out=marts.interest_fcounts(
 			       rename = (
 					   COL1 = count
-					   _LABEL_ = interest 		/* use interest labels for display */
+					   _LABEL_ = interest	/* use interest labels for display */
 				   )
 				   drop = _NAME_
 			   );
 run;
-
 
 /* ------------------------------------------------- */
 /* PDF REPORT: frequency counts of holiday interests */
@@ -32,6 +50,8 @@ run;
 options papersize=A4 orientation=portrait;
 	ods pdf file="&root.\reports\holiday_interest_frequency_counts.pdf" 
 			style=journal1a;
+		
+		/* report print no. 1 */
 		title1 "Frequency Counts of Holiday Interests";
 		footnote1 height=10pt "Created on: %sysfunc(datetime(), fulldtfmt.)";
 			proc sql;
@@ -49,6 +69,7 @@ options papersize=A4 orientation=portrait;
 		title1;
 		footnote1;
 
+		/* report print no. 2 */
 		title1 "Frequency Counts of Holiday Interests";
 		title2 "By Gender and Country";
 		footnote1 height=10pt "Created on: %sysfunc(datetime(), fulldtfmt.)";
@@ -64,10 +85,11 @@ options papersize=A4 orientation=portrait;
 			run;
 		title1;
 		footnote1;
+
 	ods pdf close;
 options papersize=A4 orientation=portrait;
 
-/* Optional: export as a CSV file */
+/* optional: export as a CSV file for python visualisations (see python folder) */
 
 proc export data=marts.interest_fcounts
 			outfile="&root.\python\data\holiday_interest_counts.csv"
@@ -90,7 +112,8 @@ run;
 proc means data=detail.households_detail(keep = &all_interests. gender)
 		   sum maxdec=0 nway noprint;
 	class gender;
-	var &all_interests.;
+	var &all_interests.;	/* macro variable with all holiday interest variables (see 03.1_preparehouseholds.sas program) */
+
 	output out=fcounts_by_gender(drop = _TYPE_ _FREQ_)
 		sum=;
 run;
@@ -101,14 +124,14 @@ proc transpose data=fcounts_by_gender
 			   out=fcounts_by_gender(
 			 	   rename = (
 					   COL1 = freq_count
-					   _LABEL_ = interest		/* use interest labels for display */
+					   _LABEL_ = interest	/* use interest labels for display */
 					   )
 				   drop = _NAME_
 			   );
 	by gender;		/* put gender as rows (NOT columns using ID) */
 run;
 
-/* sort descending counts by gender */
+/* sort descending freq counts by gender */
 
 proc sort data=fcounts_by_gender;
 	by
@@ -139,8 +162,8 @@ run;
 ods excel file="&root.\reports\top5_interests_by_gender.xlsx"
 		  style=journal1a
 		  options(
-		      sheet_interval="bygroup"
-			  suppress_bylines="yes"
+		      sheet_interval="bygroup"  
+			  suppress_bylines="yes" 
 			  sheet_label="Gender"
 		  );
 	title "Holiday Interests by Gender";

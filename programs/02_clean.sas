@@ -1,4 +1,22 @@
 
+*************************************************************************************************
+*                                                                             					*
+*	Name:					02_clean.sas														*
+*                                                                             					*
+*	Description:			Perform general cleaning and standardisation of input data 			*
+*							sets to load into the STAGING library.								*
+*                                                                             					*
+*	Creation Date:			Sun, 22 Feb 2026 													*
+*                                                                             					*
+*	Last Updated:			Mon, 23 Feb 2026													*
+* 																								*
+*	Created By:				Anwarat Gurung														*
+*							Katalyze Data														*		
+* 																								*
+************************************************************************************************;
+
+/* clean RAW.HOUSEHOLDS and load into STAGING.HOUSEHOLDS */
+
 data staging.households;
     set raw.households(rename = (title = old_title));
 
@@ -29,8 +47,10 @@ data staging.households;
 	id_num = input(customer_id, 10.);	
 run;
 
+/* print and view randomised samples of HOUSEHOLDS */
+
 %sample(
-    ds=staging.households, 
-    obs=25,
-    formats=dob customer_startdate contact_date date9.
+    ds 		= staging.households, 
+    obs		= 25,
+    formats = dob customer_startdate contact_date date9.
 )

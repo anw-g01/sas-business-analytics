@@ -3,24 +3,19 @@
 *                                                                             					*
 *	Name:					01_import.sas														*
 *                                                                             					*
-*	Description:			Completes Section A of the SAS Business Analytics Case Study.		*
-*                           - Imports source data files (CSV and DAT) into SAS libraries.		*
-*							- Generates an initial data content report. 						*
+*	Description:			Load all input CSV and DAT files into the RAW SAS library 			*
+*							and produce a PROC CONTENTS summary PDF report of all data sets.	*
 *                                                                             					*
 *	Creation Date:			Wed, 28 Jan 2026 													*
 *                                                                             					*
-*	Last Updated:			-																	*
+*	Last Updated:			Mon, 23 Feb 2026													*
 * 																								*
 *	Created By:				Anwarat Gurung														*
 *							Katalyze Data														*		
 * 																								*
 ************************************************************************************************;
 
-/* ----------------------------------------------------- */
-/* ---------- SECTION A: Importing Data Files ---------- */
-/* ----------------------------------------------------- */
-
-* 1. HOUSEHOLDS;
+/* 1. HOUSEHOLDS */
 
 data raw.households;
 	infile input("Households.csv")
@@ -73,7 +68,7 @@ data raw.households;
 run;
 
 
-* 2. BOOKINGS;
+/* 2. BOOKINGS */
 
 data raw.bookings;
 	infile input("Bookings.csv")
@@ -112,13 +107,12 @@ data raw.bookings;
 		pax 				= "Number of Passengers"
 		insurance_code 		= "Customer Added Insurance"
 		room_type		 	= "Room Type"
-		holiday_cost 		= "Total Cost (£) of Holiday"
+		holiday_cost 		= "Total Cost (ï¿½) of Holiday"
 		destination_code 	= "Destination Code";
-		
 run;
 
 
-* 3. DESTINATIONS;
+/* 3. DESTINATIONS */
 
 data raw.destinations;
 	infile input("Destinations.csv")
@@ -137,11 +131,10 @@ data raw.destinations;
 	label 
 		code 				= "Destination Code"
 		description 		= "Description";
-		
 run; 
 
 
-*4. LOYALTY;
+/* 4. LOYALTY */
 
 data raw.loyalty;
 	infile input("Loyalty.dat")		/* tab delimitted DAT file */
@@ -171,16 +164,14 @@ data raw.loyalty;
 		invested_date 		= "Investment Date";
 run;
 
-
-/* ------------------------------------------------ */
-/* ------------ PDF REPORT OF CONTENTS ------------ */
-/* ------------------------------------------------ */
+/* ------------------------------- */
+/*  PDF REPORT: DATA SET CONTENTS  */
+/* ------------------------------- */
 
 %generate_contents(lib=raw)    		/* generate a PROC CONTENTS report for each data set within the RAW library */
 
-
-/* ------------------------------------------------ */
-/* ---------- OPTIONAL: DATA SET SAMPLES ---------- */
-/* ------------------------------------------------ */
+/* ------------------------------------------- */
+/*  OPTIONAL: PRINT AND VIEW DATA SET SAMPLES  */
+/* ------------------------------------------- */
 
 %sample_all(lib=raw, obs=8)			/* print a randomised selection of samples from each data set in specified library */

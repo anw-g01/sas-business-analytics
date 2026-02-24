@@ -1,4 +1,22 @@
 
+*****************************************************************************************************
+*                                                                             						*
+*	Name:					03.1_prepare_households.sas												*
+*                                                                             						*
+*	Description:			Prepare the HOUSEHOLDS customer data set by constructing greeting 		*
+*							messages, identifying primary householders, and deriving holiday 		*
+*							interest indicators. Output contact-specific datasets and generate		*
+*							a sample PDF report.													*
+*                                                                             						*
+*	Creation Date:			Fri, 30 Jan 2026 														*
+*                                                                             						*
+*	Last Updated:			Mon, 23 Feb 2026														*
+* 																									*
+*	Created By:				Anwarat Gurung															*
+*							Katalyze Data															*		
+* 																									*
+*****************************************************************************************************;
+
 /* --------------------------------------------------------------------------- */
 /* ---------- TASK: construct a customer greeting message variable  ---------- */
 /* --------------------------------------------------------------------------- */
@@ -33,10 +51,9 @@ data households_detail;
 		greeting = catx(" ", "Dear", title, substr(forename, 1, 1), family_name);
 run;
 
-
-/* ---------------------------------------------------------- */
-/* ---------- TASK: identify primary householders  ---------- */
-/* ---------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------ */
+/* ---------- TASK: identify primary householders (based on specified rules) ---------- */
+/* ------------------------------------------------------------------------------------ */
 
 proc sort data=households_detail;
 	by 
@@ -51,20 +68,20 @@ data households_detail;
 	/* group by the same sorting variables (order hierarchy) */
 	by location gender_rank descending age;	   	
 	
+	/* assign household IDs and primary householder flags based on the first record of each group */
 	if first.location then do;
-		household_id + 1;			/* create a HOUSEHOLD_ID variable for each location */
+		household_id + 1;			/* increment HOUSEHOLD_ID for each new location (i.e. household) */
 		primary_householder = 1;	/* primary householder is sorted as first */
 	end;
 	else 
-		primary_householder = 0;
+		primary_householder = 0;	/* assign 0 to all other customers within the same location/household */
 run;
 
+/* ----------------------------------------------------------------------- */
+/* ---------- TASK: derive a variable for each holiday interest ---------- */
+/* ----------------------------------------------------------------------- */
 
-/* ------------------------------------------------------------------------- */
-/* ---------- TASK 4: derive a variable for each holiday interest ---------- */
-/* ------------------------------------------------------------------------- */
-
-/* create a holiday interests coding data set */
+/* create a holiday interests coding data set (used to create macro variables) */
 
 data interest_coding;
     infile datalines dsd dlm=",";
@@ -88,6 +105,8 @@ TU,Mountain Biking
 VYZ,Trail Walking
 ;
 run;
+
+/* generate global macro variables for dynamic use in a macro */
 
 proc sql noprint;
 
@@ -118,12 +137,12 @@ proc sql noprint;
 
 quit;
 
-/* for each customer interest, create a boolean interest variable */
+/* create a boolean interest flag variable for ALL holiday interests */
 
-%macro assign_interests(ds_in=, ds_out=);
+%macro assign_interests;
 
-	data &ds_out.;				
-		set &ds_in.;			
+	data households_detail;				/* hardcoded data set name (specific macro relevant for data set only) */
+		set detail.households_detail;	/* read in the HOUSEHOLDS_DETAIL data set from the DETAIL library */		
 
 		/* initialise each description as a variable to 0 */
 		%do i = 1 %to &num_interests.;
@@ -151,28 +170,25 @@ quit;
 
 %mend;
 
-%assign_interests(
-    ds_in=households_detail,
-    ds_out=detail.households_detail     /* write to DETAIL library */
-)
+%assign_interests	/* call macro to assign all interest variables */
 
 /* inspect newly populated interest variables (randomly sampled results) */
 
 %sample(
 	ds=detail.households_detail, 
 	keep=interests &all_interests.,
-	obs=25,
+	obs=25
 )
 
 /* -------------------------------------------------------------------------- */
 /* ---------- TASK: separate customers by preferred contact method ---------- */
 /* -------------------------------------------------------------------------- */
 
-%let req_cols = customer_id contact_preference greeting id_num;	/* essential columns required for each data set */
+%let req_cols = customer_id contact_preference greeting id_num;		/* macro variable: essential columns required for each data set */
 
 data 
-	contact_post		(keep = &req_cols. full_address)
-	contact_email		(keep = &req_cols. email1)
+	     contact_post	(keep = &req_cols. full_address)
+	    contact_email	(keep = &req_cols. email1)
 	excep.contact_dnc	(keep = &req_cols.);
 
 	/* optional: enforce a strict ordering of variables */
@@ -184,7 +200,7 @@ data
 		length full_address $ 120;		/* optional: create full_address variable for compact display of address columns */
 		label full_address = "Full Customer Address";
 		full_address = catx(", ", of address1-address4, postcode); 
-		output contact_post ;
+		output contact_post;
 	end;
 	else if lowcase(contact_preference) = "e-mail" then 
 		output contact_email;
@@ -195,18 +211,20 @@ run;
 /* sort data sets by descending customer ID */
 
 proc sort data=contact_post
-		  out=staging.contact_post(drop = id_num);		/* write to STAGING library */
+		  out=detail.contact_post(drop = id_num);		/* write to DETAIL library */
 	by descending id_num;
 run;
 
 proc sort data=contact_email 
-		  out=staging.contact_email(drop = id_num);
+		  out=detail.contact_email(drop = id_num);
 	by descending id_num;
 run;
 
 /* view random samples of contact preference data sets */
 
-%sample_all(lib=staging)	
+%sample(ds=detail.contact_post)
+
+%sample(ds=detail.contact_email)
 
 /* ------------------------------------------------------- */
 /* PDF REPORT: first 30 observations ordered by customer ID */
@@ -214,13 +232,12 @@ run;
 
 options papersize=A3 orientation=landscape;
 	%generate_prints(
-		dslist=staging.contact_post staging.contact_email,
-		obs=30,		
-		label=1, 	/* preference: show variable names, not labels */
-		filename=contact_preferences_report
+		dslist 		= detail.contact_post detail.contact_email,
+		obs			= 30,		
+		label		= 0, 	/* preference: show variable names, not labels */
+		filename	= contact_preferences_report
 	)
 options papersize=A4 orientation=portrait;
-
 
 /* ------------------------------------------------ */
 /* ---------- OPTIONAL VALIDATION CHECKS ---------- */
@@ -232,15 +249,15 @@ proc freq data=households_detail
 		  order=freq;
 
 	table 
-		title * gender				/* two-way frequency table */
+		title * gender		/* two-way frequency table */
 		/ nocol nopercent norow;
 run;
 
 %sample(
-	ds=households_detail, 
-	obs=25,
-	keep = forename family_name title gender greeting
-	where = (lowcase(greeting) contains "customer")		/* inspect random samples with filters */
+	ds		= households_detail, 
+	obs		= 25,
+	keep 	= forename family_name title gender greeting
+	where 	= (lowcase(greeting) contains "customer")		/* inspect random samples with filters */
 )
 
 /* EDA: inspect households that have multiple members only */
@@ -263,6 +280,7 @@ footnote1;
 
 proc freq data=households_detail(keep = contact_preference)
 		  order=freq;
+			
 	table contact_preference
 		/ nocum;
 run;

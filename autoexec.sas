@@ -1,5 +1,5 @@
 
-/* PATH TO PROJECT ROOT DIRECTORY (CHANGE ON YOUR SYSTEM) */
+/* PATH TO PROJECT ROOT DIRECTORY (CHANGE FOR YOUR SYSTEM) */
 
 %let root = C:\Users\anwarat.gurung\OneDrive - Katalyze Data\Documents\SAS\Anwarat - SAS Case Study;
 
@@ -17,7 +17,7 @@ libname excep 	 	"&root.\data\06_exceptions";
 
 filename macros 	"&root.\macros";
 
-/* SHARED SAS OBJECTS: FORMATS */
+/* STORED FORMATS LIBRARY */
 
 libname formats 	"&root.\formats";
 
