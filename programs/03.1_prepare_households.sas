@@ -141,8 +141,8 @@ quit;
 
 %macro assign_interests;
 
-	data households_detail;				/* hardcoded data set name (specific macro relevant for data set only) */
-		set detail.households_detail;	/* read in the HOUSEHOLDS_DETAIL data set from the DETAIL library */		
+	data detail.households_detail;				/* hardcoded data set name (specific macro relevant for data set only) */
+		set households_detail;	/* read in the HOUSEHOLDS_DETAIL data set from the DETAIL library */		
 
 		/* initialise each description as a variable to 0 */
 		%do i = 1 %to &num_interests.;
@@ -150,19 +150,22 @@ quit;
 			label &&desc&i = "&&interest_label&i"; 		/* optional label */
 		%end;
 
-		/* loop through each interest letter code */
-		do i = 1 to countw(interests, " ");				/* space separated interest codes */
+		if not missing(interests) then do;
 
-			letter = scan(interests, i);				/* get the ith letter code */
+			/* loop through each interest letter code if not missing */
+			do i = 1 to countw(interests, " "); 		/* space separated interest codes */
 
-			/* loop through each interest description */
-			%do j = 1 %to &num_interests.;
+				letter = upcase(scan(interests, i)); 	/* get the ith letter code */
 
-				/* if letter is found within letters code, then toggle interest = 1 */
-				if index("&&codes&j", strip(letter)) then   /* strip turns letter variable into a character for comparison */
-					&&desc&j = 1;	
-				;
-			%end;
+				/* loop through each interest description */
+				%do j = 1 %to &num_interests.;
+
+					/* if letter is found within letters code, then toggle interest = 1 */
+					if index("&&codes&j", strip(letter)) then   /* strip turns letter variable into a character for comparison */
+						&&desc&j = 1;	
+					
+				%end;
+			end;
 		end;
 		
 		drop i letter;
@@ -175,9 +178,17 @@ quit;
 /* inspect newly populated interest variables (randomly sampled results) */
 
 %sample(
+	ds		= detail.households_detail, 
+	keep	= interests &all_interests.,
+	obs		= 25,
+	where	= (countw(interests) > 3) 	/* filter for samples with multiple interests */
+)
+
+%sample(
 	ds=detail.households_detail, 
 	keep=interests &all_interests.,
-	obs=25
+	obs=25,
+	where=(missing(interests))		/* checking no counts for any missing interests */
 )
 
 /* -------------------------------------------------------------------------- */

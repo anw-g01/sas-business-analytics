@@ -43,7 +43,7 @@ data raw.households;
 		postcode     		: $10.
 		email1 				: $40.
 		contact_preference 	: $10.
-		interests 			: $5.
+		interests 			: $30.		
 		customer_startdate 	: date9.
 		contact_date 		: date9.;	
 
