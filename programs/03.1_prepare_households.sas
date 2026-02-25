@@ -29,18 +29,18 @@ data households_detail;
 
 	/* infer GENDER if a title is available */
 	if missing(gender) and not missing(title) then do;
-		if title in ("Mrs", "Miss", "Ms") then 
+		if lowcase(title) in ("mrs", "miss", "ms") then 
 			gender = "F";
-		else if title in ("Mr", "Sir") then
+		else if lowcase(title) in ("mr", "sir") then
 			gender = "M";
 		/* gender neutral title "Dr" will be ignored */
 	end;
 
 	/* infer TITLE if a gender is available */
 	if missing(title) and not missing(gender) then do;
-		if gender = "F" then
+		if lowcase(gender) = "f" then
 			title = "Ms";
-		else if gender = "M" then
+		else if lowcase(gender) = "m" then
 			title = "Mr";
 	end;
 
@@ -256,7 +256,7 @@ options papersize=A4 orientation=portrait;
 
 /* EDA: inspect categories and frequencies of title and gender */
 
-proc freq data=households_detail
+proc freq data=detail.households_detail
 		  order=freq;
 
 	table 

@@ -12,7 +12,7 @@
 * 																										*
 *	Creation Date:			Wed, 18 Feb 2026 															*
 *                                                                             							*
-*	Last Updated:			Mon, 23 Feb 2026															*
+*	Last Updated:			Wed, 25 Feb 2026															*
 * 																										*
 *	Created By:				Anwarat Gurung																*
 *							Katalyze Data																*		
@@ -39,7 +39,6 @@
 						run;
 					title1;
 					footnote1;
-					ods select EngineHost;
 				%end;
 			%end;
 			%else %put WARNING: zero data sets found in library "&lib.";

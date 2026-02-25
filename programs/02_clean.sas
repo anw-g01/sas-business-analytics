@@ -8,7 +8,7 @@
 *                                                                             					*
 *	Creation Date:			Sun, 22 Feb 2026 													*
 *                                                                             					*
-*	Last Updated:			Mon, 23 Feb 2026													*
+*	Last Updated:			Wed, 25 Feb 2026													*
 * 																								*
 *	Created By:				Anwarat Gurung														*
 *							Katalyze Data														*		
@@ -54,3 +54,23 @@ run;
     obs		= 25,
     formats = dob customer_startdate contact_date date9.
 )
+
+/* inspect and check for any duplicate IDs across data sets */
+
+%macro check_duplicates(ds, var);
+	%let memname = %scan(&ds., -1, .);
+	proc sql;
+		create table dup_&memname. as (
+			select &var.
+			from &ds.
+			group by &var.
+			having count(*) > 1
+		);
+	quit;
+%mend;
+
+%check_duplicates(raw.households, customer_id)
+
+%check_duplicates(raw.bookings, booking_id)
+
+%check_duplicates(raw.loyalty, loyalty_id)
